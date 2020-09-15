@@ -5,94 +5,150 @@
 // selectively enable features needed in the rendering
 // process.
 // In the renderer process.
-const { desktopCapturer } = require('electron')
 
-let btnEnable;
-let selectEl;
-let desktopSharing = false;
-let localStream;
+let btnEnableAudio;
+
+let isAudioCapturing = false;
+
+let localAudioStream;
+
+const padding = 15;
+const paddingBottom = 60;
+const barNumber = 27;
+let anim;
+let WIDTH, HEIGHT;
+
+const ecart = 10;
+let barWidth;
+
+let canvas;
 
 const init = () => {
-    btnEnable = document.querySelector("#btnEnable");
-    btnEnable.addEventListener("click", () => { toggle() });
-    selectEl = document.querySelector("#selectSource");
-    showSources();
+    canvas = document.querySelector("canvas");
+    canvas.width = window.innerWidth - padding;
+    canvas.height = window.innerHeight - paddingBottom;
+    
+    WIDTH = canvas.width - 2*padding;
+    HEIGHT = canvas.height - 2*padding;
+    barWidth = (WIDTH / barNumber) -ecart;
+    
+    btnEnableAudio = document.querySelector("#btnEnableAudio");
+    
+    btnEnableAudio.addEventListener("click", () => { toggleCaptureAudio() });
 };
 
-const toggle = () => {
-    if (!desktopSharing) {
-        var id = selectEl.value;
-        onAccessApproved(id);
+
+
+const toggleCaptureAudio = () => {
+    if (!isAudioCapturing) {
+        captureAudio();
     } else {
-        desktopSharing = false;
+        isAudioCapturing = false;
 
-        if (localStream)
-            localStream.getTracks()[0].stop();
-        localStream = null;
+        if (localAudioStream)
+            localAudioStream.getTracks()[0].stop();
+        localAudioStream = null;
 
-        btnEnable.innerHTML = "Enable Capture";
-
-        // showSources();
+        btnEnableAudio.innerHTML = "Enable Audio Capture";
     }
-};
+}
 
-const showSources = () => {
-    desktopCapturer.getSources({ types: ['window', 'screen'] }).then(async sources => {
-        for (let source of sources) {
-            console.log("Name: " + source.name);
-            addSource(source);
-        }
-    });
-};
+const captureAudio = async () => {
+    console.log("Desktop audio capturing");
 
-const addSource = (source) => {
-    const optionEl = document.createElement("option");
-    optionEl.value = source.id;
-    optionEl.innerText = source.name;
-    selectEl.appendChild(optionEl);
-};
-
-const onAccessApproved = async (sourceId) => {
-    if (!sourceId) {
-        console.log('Desktop Capture access rejected.');
-        return;
+    if(anim){
+        window.cancelAnimationFrame(anim);
     }
-    desktopSharing = true;
-    btnEnable.innerHTML = "Disable Capture";
-    console.log("Desktop sharing started.. sourceId:" + sourceId);
 
+    btnEnableAudio.innerHTML = "...";
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
-            audio: false,
+            audio: {
+                mandatory: {
+                    chromeMediaSource: 'desktop'
+                }
+            },
             video: {
                 mandatory: {
-                    chromeMediaSource: 'desktop',
-                    chromeMediaSourceId: sourceId,
-                    minWidth: 1280,
-                    maxWidth: 1280,
-                    minHeight: 720,
-                    maxHeight: 720
+                    chromeMediaSource: 'desktop'
                 }
             }
         });
-        handleStream(stream)
+        handleAudioStream(stream);
+        isAudioCapturing = true;
+        btnEnableAudio.innerHTML = "Disable Audio Capture";
     } catch (e) {
         handleError(e);
     }
 };
 
-const handleStream = (stream) => {
-    localStream = stream;
-    const video = document.querySelector('video')
-    video.srcObject = stream
-    video.onloadedmetadata = (e) => video.play()
+
+const handleAudioStream = (stream) => {
+    localAudioStream = stream;
+
+    const context = new AudioContext();
+    const src = context.createMediaStreamSource(stream);
+    const analyser = context.createAnalyser();
+    const ctx = canvas.getContext("2d");
+
+    src.connect(analyser);
+    analyser.fftSize = 512;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const bufferByBar = Math.round(bufferLength/barNumber);
+    const dataArray = new Uint8Array(bufferLength);
+
+    var barHeight;
+    var x = 0;
+
+    const renderFrame = () => {
+        anim = requestAnimationFrame(renderFrame);
+
+        x = padding;
+
+        analyser.getByteFrequencyData(dataArray);
+
+        ctx.fillStyle = "#0f0";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (var i = 0; i < barNumber; i++) {
+            barHeight = 0
+            for (var j = 0; j < bufferByBar; j++) {
+                barHeight += dataArray[i*bufferByBar+j];
+            }
+            barHeight = barHeight/bufferByBar;
+
+            barHeight = barHeight/700*HEIGHT;
+
+            var r = barHeight + (25 * (i/bufferLength));
+            var g = 250 * (i/bufferLength);
+            var b = 50;
+
+            // var fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+            var fillStyle = "#F00";
+
+            ctx.fillStyle = fillStyle;
+            // ctx.fillStyle = "#F00";
+            ctx.fillRect(x, HEIGHT - 2*barHeight - barWidth/2, barWidth, 2*barHeight);
+
+            ctx.beginPath();
+            ctx.arc(x+(barWidth/2), HEIGHT - 2*barHeight -barWidth/2 , barWidth/2, 0, 2 * Math.PI, false);
+            ctx.arc(x+(barWidth/2), HEIGHT - barWidth/2 , barWidth/2, 0, 2 * Math.PI, false);
+            ctx.fill();
+            ctx.lineWidth = 0;
+            ctx.strokeStyle = fillStyle;
+            ctx.stroke();
+
+
+            x += barWidth + ecart;
+        }
+    }
+    renderFrame();
 };
+
 
 const handleError = (e) => {
     console.log(e)
 };
-
-
-
 
 init();

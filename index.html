@@ -10,17 +10,12 @@
     </head>
 
     <body>
-        <h1>Hello World!</h1>
-        We are using Node.js <span id="node-version"></span>,
-        Chromium <span id="chrome-version"></span>,
-        and Electron <span id="electron-version"></span>.
-
-        <p>Test video source</p>
-        <select id="selectSource"></select>
-        <p>
-            <button id="btnEnable">Enable</button>
-        </p>
-        <video autoplay></video>
+        <button id="btnEnableAudio">Enable Audio Capture</button>
+        
+        <canvas id="audioOutput">
+            audio output here maybe
+        </canvas>
+        <!-- <audio autoplay></audio> -->
         <!-- You can also require other files to run in this process -->
         <script src="./app.js"></script>
     </body>
