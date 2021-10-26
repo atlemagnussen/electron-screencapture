@@ -4,7 +4,11 @@
   "description": "A minimal Electron application",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "build": "tsc",
+    "watch": "tsc -w",
+    "lint": "eslint -c .eslintrc --ext .ts ./src",
+    "copy": "cp ./src/index.html ./dist",
+    "start": "npm run build && npm run copy && electron ./dist/main.js"
   },
   "repository": "https://github.com/electron/electron-quick-start",
   "keywords": [
@@ -17,7 +21,8 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^10.1.2",
-    "eslint": "^7.9.0"
+    "electron": "^15.3.0",
+    "eslint": "^8.1.0",
+    "typescript": "^4.4.4"
   }
 }

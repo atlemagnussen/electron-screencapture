@@ -1,30 +1,24 @@
-// This file is required by the index.html file and will
-// be executed in the renderer process for that window.
-// No Node.js APIs are available in this process because
-// `nodeIntegration` is turned off. Use `preload.js` to
-// selectively enable features needed in the rendering
-// process.
-// In the renderer process.
 
-let btnEnableAudio;
 
-let isAudioCapturing = false;
+let btnEnableAudio: HTMLButtonElement
 
-let localAudioStream;
+let isAudioCapturing = false
 
-const padding = 15;
-const paddingBottom = 60;
-const barNumber = 27;
-let anim;
-let WIDTH, HEIGHT;
+let localAudioStream: MediaStream | null
 
-const ecart = 10;
-let barWidth;
+const padding = 15
+const paddingBottom = 60
+const barNumber = 27
+let anim: number
+let WIDTH: number, HEIGHT: number
 
-let canvas;
+const ecart = 10
+let barWidth: number
+
+let canvas: HTMLCanvasElement
 
 const init = () => {
-    canvas = document.querySelector("canvas");
+    canvas = document.querySelector("canvas") as HTMLCanvasElement
     canvas.width = window.innerWidth - padding;
     canvas.height = window.innerHeight - paddingBottom;
     
@@ -32,7 +26,7 @@ const init = () => {
     HEIGHT = canvas.height - 2*padding;
     barWidth = (WIDTH / barNumber) -ecart;
     
-    btnEnableAudio = document.querySelector("#btnEnableAudio");
+    btnEnableAudio = document.querySelector("#btnEnableAudio") as HTMLButtonElement
     
     btnEnableAudio.addEventListener("click", () => { toggleCaptureAudio() });
 };
@@ -47,7 +41,7 @@ const toggleCaptureAudio = () => {
 
         if (localAudioStream)
             localAudioStream.getTracks()[0].stop();
-        localAudioStream = null;
+        localAudioStream = null
 
         btnEnableAudio.innerHTML = "Enable Audio Capture";
     }
@@ -63,16 +57,12 @@ const captureAudio = async () => {
     btnEnableAudio.innerHTML = "...";
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
-            audio: {
-                mandatory: {
-                    chromeMediaSource: 'desktop'
-                }
+            // @ts-ignore
+            audio: { mandatory: { chromeMediaSource: 'desktop' }
+              
             },
-            video: {
-                mandatory: {
-                    chromeMediaSource: 'desktop'
-                }
-            }
+            // @ts-ignore
+            video: { mandatory: { chromeMediaSource: 'desktop' } }
         });
         handleAudioStream(stream);
         isAudioCapturing = true;
@@ -83,7 +73,7 @@ const captureAudio = async () => {
 };
 
 
-const handleAudioStream = (stream) => {
+const handleAudioStream = (stream: MediaStream) => {
     localAudioStream = stream;
 
     const context = new AudioContext();
@@ -108,8 +98,9 @@ const handleAudioStream = (stream) => {
 
         analyser.getByteFrequencyData(dataArray);
 
-        ctx.fillStyle = "#0f0";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const context = ctx as CanvasRenderingContext2D
+        context.fillStyle = "#0f0";
+        context.fillRect(0, 0, canvas.width, canvas.height);
 
         for (var i = 0; i < barNumber; i++) {
             barHeight = 0
@@ -127,17 +118,17 @@ const handleAudioStream = (stream) => {
             // var fillStyle = "rgb(" + r + "," + g + "," + b + ")";
             var fillStyle = "#F00";
 
-            ctx.fillStyle = fillStyle;
+            context.fillStyle = fillStyle;
             // ctx.fillStyle = "#F00";
-            ctx.fillRect(x, HEIGHT - 2*barHeight - barWidth/2, barWidth, 2*barHeight);
+            context.fillRect(x, HEIGHT - 2*barHeight - barWidth/2, barWidth, 2*barHeight);
 
-            ctx.beginPath();
-            ctx.arc(x+(barWidth/2), HEIGHT - 2*barHeight -barWidth/2 , barWidth/2, 0, 2 * Math.PI, false);
-            ctx.arc(x+(barWidth/2), HEIGHT - barWidth/2 , barWidth/2, 0, 2 * Math.PI, false);
-            ctx.fill();
-            ctx.lineWidth = 0;
-            ctx.strokeStyle = fillStyle;
-            ctx.stroke();
+            context.beginPath();
+            context.arc(x+(barWidth/2), HEIGHT - 2*barHeight -barWidth/2 , barWidth/2, 0, 2 * Math.PI, false);
+            context.arc(x+(barWidth/2), HEIGHT - barWidth/2 , barWidth/2, 0, 2 * Math.PI, false);
+            context.fill();
+            context.lineWidth = 0;
+            context.strokeStyle = fillStyle;
+            context.stroke();
 
 
             x += barWidth + ecart;
@@ -147,7 +138,7 @@ const handleAudioStream = (stream) => {
 };
 
 
-const handleError = (e) => {
+const handleError = (e: unknown) => {
     console.log(e)
 };
 
