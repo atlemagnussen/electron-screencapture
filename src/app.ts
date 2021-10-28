@@ -1,3 +1,7 @@
+// const { systemPreferences } = require("electron")
+import * as electron from "electron"
+console.log(electron)
+
 
 let btnEnableAudio: HTMLButtonElement
 
@@ -55,7 +59,8 @@ const captureAudio = async () => {
 
     btnEnableAudio.innerHTML = "...";
     try {
-        
+        // const consent = systemPreferences.getMediaAccessStatus("screen")
+        // console.log(consent) 
         const stream = await navigator.mediaDevices.getUserMedia({
             // @ts-ignore
             audio: { mandatory: { chromeMediaSource: 'desktop' }

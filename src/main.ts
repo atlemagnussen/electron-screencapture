@@ -1,11 +1,11 @@
 // Modules to control application life and create native browser window
-//const { app, BrowserWindow, systemPreferences } = require("electron")
+const { app, BrowserWindow } = require("electron")
 // @ts-ignore
-import electron from "./electron.cjs"
-import { app, BrowserWindow, systemPreferences } from "electron"
+// import electron from "./electron"
+//import { app, BrowserWindow, systemPreferences } from "electron"
 
-//const path = require("path")
-import * as path from "path"
+const path = require("path")
+//import * as path from "path"
 
 function createWindow() {
     // Create the browser window.
@@ -14,6 +14,7 @@ function createWindow() {
         height: 600,
         webPreferences: {
             nodeIntegration: true,
+            contextIsolation: false,
             preload: path.join(__dirname, 'preload.js')
         }
     })
