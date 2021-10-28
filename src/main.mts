@@ -1,6 +1,11 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow } = require('electron')
-const path = require('path')
+//const { app, BrowserWindow, systemPreferences } = require("electron")
+// @ts-ignore
+import electron from "./electron.cjs"
+import { app, BrowserWindow, systemPreferences } from "electron"
+
+//const path = require("path")
+import * as path from "path"
 
 function createWindow() {
     // Create the browser window.
@@ -31,6 +36,9 @@ app.whenReady().then(() => {
         // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) createWindow()
     })
+
+    const consent = systemPreferences.getMediaAccessStatus("screen")
+    console.log(consent)
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common

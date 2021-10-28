@@ -1,5 +1,4 @@
 
-
 let btnEnableAudio: HTMLButtonElement
 
 let isAudioCapturing = false
@@ -56,6 +55,7 @@ const captureAudio = async () => {
 
     btnEnableAudio.innerHTML = "...";
     try {
+        
         const stream = await navigator.mediaDevices.getUserMedia({
             // @ts-ignore
             audio: { mandatory: { chromeMediaSource: 'desktop' }
